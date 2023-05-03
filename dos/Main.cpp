@@ -7,17 +7,15 @@
 #define P2 2
 
 /*
-Known Bugs:
-1. Incorrect Inputs
-2. Viable play is fixed, but the move selection and centerrow removal must be changed to implement?
 
-Extra Credit:
-1. More Players
+	Dos Game for ECE 175
+	Created by: Conrad Kusion and Tony Pluta
+	5/2/2023
+
 */
 
-
 int main(void) {
-	srand((int)time(0));
+	srand((int)time(0)); //setup random counter
 
 	card deck[DECKSIZE];
 	card* player1_deck = NULL; //head of player1's deck
@@ -38,12 +36,12 @@ int main(void) {
 	printf("Enter 1 to shuffle a deck, 2 to load a deck: ");
 	scanf("%d", &userMode);
 
-	if (userMode == 1) {
+	if (userMode == 1) { //Shuffle new deck if 1 is selected
 		shuffleDeck(deck, colors);
 		printf("The deck is shuffled. Press any key to deal cards.\n");
 
 	}
-	else if (userMode == 2) {
+	else if (userMode == 2) { //Load deck from file and shuffle it
 		printf("Enter the name of a valid deck file: ");
 		scanf(" %s", userFile);
 		FILE* deckFile = NULL;
@@ -53,12 +51,12 @@ int main(void) {
 			return 5;
 		}
 
-		for (int i = 0; i < DECKSIZE; i++) {
+		for (int i = 0; i < DECKSIZE; i++) { //For loop to assign the deck array
 			fscanf(deckFile, "%s %d %*s", deck[i].color, &deck[i].value);
-			if (strcmp(deck[i].color, "black") == 0 && deck[i].value == 2) {
+			if (strcmp(deck[i].color, "black") == 0 && deck[i].value == 2) { //Change black to anycolor
 				strcpy(deck[i].color, "anycolor");
 			}
-			else if (deck[i].value == 11) {
+			else if (deck[i].value == 11) { //Changes 11 to #
 				deck[i].value = 0;
 				strcpy(deck[i].action, "#");
 			}	
@@ -68,27 +66,24 @@ int main(void) {
 		fclose(deckFile);
 	}
 
-	//TODO: Check for User pressing a key
-
 	for (int i = 1; i <= 7; i++) { //Alternate Deal for userDecks
 		addDeck(&player1_deck, 1, deck, &numDeck);
 		addDeck(&player2_deck, 1, deck, &numDeck);
 	}
 	addDeck(&centerrow, 2, deck, &numDeck); //Create CenterRow
 
-	centerPT = centerrow;
+	centerPT = centerrow; //Setup centerrow pointer
 
-	//TODO: Create Full Game
-	while (numDeck != 0 || P1Score < 200 || P2Score < 200) {
-		while (numCardsP2 != 0 || numCardsP1 != 0) {
+	while (numDeck != 0 || P1Score < 200 || P2Score < 200) { //While loop for the full game
+		while (numCardsP2 != 0 || numCardsP1 != 0) { //While loop for a round
 			if (currTurn == P1) { //Player 1 Turn
-				currentTurn(&player1_deck, currTurn, deck, &centerrow, &numCardsP1, &numDeck, &centerRowNum, &isDoubleMatch);
-				if (numCardsP1 == 0) {
+				currentTurn(&player1_deck, currTurn, deck, &centerrow, &numCardsP1, &numDeck, &centerRowNum, &isDoubleMatch); //Run the function for the players turn
+				if (numCardsP1 == 0) { //End the round if player has no cards
 					rdWinner = P1;
 					break;
 				}
 				else {
-					currTurn = P2;
+					currTurn = P2; //Change to P2
 				}
 			}
 			else if (currTurn == P2) { //Player 2 Turn
@@ -102,6 +97,7 @@ int main(void) {
 				}
 			}
 		}
+
 		//Print round points and total points
 		if (rdWinner == P1) {
 			roundPoints = calcPoints(&player2_deck);
@@ -117,29 +113,29 @@ int main(void) {
 		printf("Player One: %d point(s)\n", P1Score);
 		printf("Player Two: %d point(s)\n", P2Score);
 		roundPoints = 0;
-		//TODO: Clear old decks and centerrows and create new ones.
-		freeGame(&player1_deck, &player2_deck, &centerrow);
+		freeGame(&player1_deck, &player2_deck, &centerrow); //Clear old decks
 
 		for (int i = 1; i <= 7; i++) { //Alternate Deal for userDecks
 			addDeck(&player1_deck, 1, deck, &numDeck);
 			addDeck(&player2_deck, 1, deck, &numDeck);
 		}
+
 		addDeck(&centerrow, 2, deck, &numDeck); //Create CenterRow
 		numCardsP1 = 7;
 		numCardsP2 = 7;
 		centerRowNum = 2;
 		currTurn = P1;
 		rdWinner = 0;
-		isDoubleMatch = false;
-		if (P1Score > 200 || P2Score > 200) {
+		isDoubleMatch = false; //Adjust variables for new round
+		if (P1Score > 200 || P2Score > 200) { //Break the loop if a game is won
 			break;
 		}
-		if (numDeck == 0) {
+		if (numDeck == 0) { //Break the loop if you run out of cards in the deck
 			break;
 		}
 	}
 
-	if (numDeck == 0) {
+	if (numDeck == 0) { //Declare winner when deck runs out of cards
 		printf("No more cards in the deck! Game over!\n");
 		if (P2Score > P1Score) {
 			printf("Player 2 Wins!\n");
@@ -155,14 +151,14 @@ int main(void) {
 		}
 	}
 
-	if (P1Score >= 200) {
+	if (P1Score >= 200) { //Player 1 wins
 		winner = P1;
 	}
-	else if (P2Score >= 200) {
+	else if (P2Score >= 200) { //Player 2 wins
 		winner = P2;
 	}
 	printf("The winner is Player %d!\n", winner);
-	freeGame(&player1_deck, &player2_deck, &centerrow);
+	freeGame(&player1_deck, &player2_deck, &centerrow); //Clear the memory from all the linked lists
 
 	return 0;
 }
@@ -172,17 +168,17 @@ void shuffleDeck(card* deck, char colors[][10]) { //shuffles the game deck
 		int value = (rand() % 11) + 1;
 
 		if (value == 11) {
-			strcpy(deck[i].action, "#");
+			strcpy(deck[i].action, "#"); //Assign # for 11
 		}
 		else {
 			deck[i].value = value;
 		}
 
 		if (value == 2) {
-			strcpy(deck[i].color, colors[4]);
+			strcpy(deck[i].color, colors[4]); //Assign anycolor if 2
 		}
 		else {
-			strcpy(deck[i].color, colors[rand() % 4]);
+			strcpy(deck[i].color, colors[rand() % 4]); //Random color
 		}
 	}
 }
@@ -197,13 +193,13 @@ void addDeck(card** head, int numCards, card* deck, int* numDeck) { //removes ca
 		else {
 			temp->value = deck[*numDeck - 1].value;
 		}
-		temp->pt = NULL;
-		if (*head == NULL)
+		temp->pt = NULL; 
+		if (*head == NULL) //If Linked List is Empty, add the first card to the beginning
 		{
 			*head = temp;
 			temp->pt = NULL;
 		}
-		else 
+		else //Add elements to beginning of linked list
 		{
 			temp->pt = *head;
 			*head = temp;
@@ -216,7 +212,7 @@ void printDeck(card* head) { //Goes through the linked list and prints the deck
 	card* cursor;
 	cursor = head;
 	while (cursor != NULL) {
-		if (strcmp(cursor->action, "#") == 0) {
+		if (strcmp(cursor->action, "#") == 0) { //If it's a #
 			printf("%s %s", cursor->action, cursor->color);
 		}
 		else {
@@ -232,41 +228,41 @@ void printDeck(card* head) { //Goes through the linked list and prints the deck
 }
 
 
-void currentTurn(card** head, int currTurn, card deck[], card** centerrow, int* numCards, int* numDeck, int* centerRowNum, bool *isDoubleMatch) {
+void currentTurn(card** head, int currTurn, card deck[], card** centerrow, int* numCards, int* numDeck, int* centerRowNum, bool *isDoubleMatch) { //Function for the user's turn
 	card* centerPT = *centerrow; //centerrow pointer
 
 	bool endTurn = false, viablePlays, addedCard = false;
 	int numCardPlayed = 0, numCardPlayed2 = 0, numCardPlayed3 = 0, numColorMatches = 0, cardsPlayed = -1;
 	
-	if (*isDoubleMatch) {
+	if (*isDoubleMatch) { //If previous player got a double color match, add card to deck of current player
 		addDeck(head, 1, deck, numDeck);
 		(*numCards)++;
 	}
 
 	*isDoubleMatch = false;
 
-	while (!endTurn) {
+	while (!endTurn) { //Loop to determine end of turn
 		if (currTurn == P1) {
 			printf("Players One's hand: ");
 		}
 		else {
 			printf("Players Two's hand: ");
 		}
-		printDeck(*head);
+		printDeck(*head); //print deck
 
-		printf("Centerline: ");
-		printDeck(*centerrow);
+		printf("Centerline: "); 
+		printDeck(*centerrow); //prink centerrow
 
-		viablePlays = checkMatches(*head, *numCards, *centerrow, centerPT);
+		viablePlays = checkMatches(*head, *numCards, *centerrow, centerPT); //check if there are any viable plays, else add a card to deck
 
-		if (!viablePlays && !addedCard) {
+		if (!viablePlays && !addedCard) { //Add card if there are no viable plays
 			printf("No viable plays, adding card to deck!\n");
 			addDeck(head, 1, deck, numDeck);
 			addedCard = true;
 			(*numCards)++;
 			continue;
 		}
-		else if (!viablePlays && addedCard) {
+		else if (!viablePlays && addedCard) { //End turn if added card and no viable plays
 			printf("No viable plays! Add a card to the center!\n");
 			if (numColorMatches == 1 && *numCards > 1) {
 				printf("You color matched and get to play two card(s) in the center row.\n");
@@ -319,7 +315,7 @@ void currentTurn(card** head, int currTurn, card deck[], card** centerrow, int* 
 		}
 
 
-		while (cardsPlayed != 1 && cardsPlayed != 2) {
+		while (cardsPlayed != 1 && cardsPlayed != 2) { //Determine how many cards user wants to play on centerrow
 			addedCard = false;
 			viablePlays = true;
 			if (strcmp(centerPT->action, "#") == 0) {
@@ -330,7 +326,7 @@ void currentTurn(card** head, int currTurn, card deck[], card** centerrow, int* 
 			} 
 			scanf("%d", &cardsPlayed);
 		}
-		if (cardsPlayed == 1) {
+		if (cardsPlayed == 1) { //User plays one card
 			numCardPlayed = 0;
 			while (numCardPlayed <= 0 || numCardPlayed > *numCards) {
 				printf("Select a card from 1-%d: ", *numCards);
@@ -350,7 +346,7 @@ void currentTurn(card** head, int currTurn, card deck[], card** centerrow, int* 
 			}
 			cardsPlayed = 0;
 		}
-		else if (cardsPlayed == 2) {
+		else if (cardsPlayed == 2) { //User Plays two cards
 			numCardPlayed = 0;
 			numCardPlayed2 = 0;
 			while (numCardPlayed <= 0 || numCardPlayed > *numCards && numCardPlayed2 <= 0 || numCardPlayed2 > *numCards) {
@@ -380,10 +376,10 @@ void currentTurn(card** head, int currTurn, card deck[], card** centerrow, int* 
 			cardsPlayed = 0;
 		}
 
-		if (centerPT == NULL) {
+		if (centerPT == NULL) { //End turn if no more centerrow cards
 			printf("There are no more center row cards to match.\n");
-			refreshCenter(centerrow);
-			addDeck(centerrow, 2, deck, numDeck);
+			refreshCenter(centerrow); //Clear centerrow
+			addDeck(centerrow, 2, deck, numDeck); //refresh centerrow
 			if (numColorMatches > 0 && *numCards != 0) {
 				printf("You color matched and get to play %d card(s) in the center row\n", numColorMatches);
 				if (currTurn == P1) {
@@ -394,6 +390,7 @@ void currentTurn(card** head, int currTurn, card deck[], card** centerrow, int* 
 				}
 				printDeck(*head);
 			}
+			//Add cards to centerrow based on # of color matches and number of cards in deck
 			if (numColorMatches == 1 && *numCards >= 1) {
 				numCardPlayed = 0;
 				while (numCardPlayed <= 0 || numCardPlayed > *numCards) {
@@ -455,6 +452,7 @@ void currentTurn(card** head, int currTurn, card deck[], card** centerrow, int* 
 			else if (numColorMatches == 0) {
 				printf("You made no color matches.\n");
 			}
+			//If number of color matches exceeds # in deck, end round.
 			else {
 				printf("Your number of color matches exceeds the number of cards in your deck! Adding remaining cards to the centerrow.\n");
 				while (*head != NULL) {
@@ -536,7 +534,7 @@ bool viablePlay(card* head, int numCardsPlayed, int numCardPlayed, int numCardPl
 	}
 }
 
-bool checkDoubleMatch(card* head, int numCardPlayed, int numCardPlayed2, card* centerrow) {
+bool checkDoubleMatch(card* head, int numCardPlayed, int numCardPlayed2, card* centerrow) { //Checks for double color matches
 	card* cursor = head;
 	card* cursor2 = head;
 
@@ -563,7 +561,7 @@ bool checkDoubleMatch(card* head, int numCardPlayed, int numCardPlayed2, card* c
 	return false;
 }
 
-bool checkMatches(card* head, int numCards, card* centerrow, card* centerPT) { //Check for any matches in the deck
+bool checkMatches(card* head, int numCards, card* centerrow, card* centerPT) { //Check for any matches in the deck before play is made
 	//while (centerPT != NULL) {
 		for (int i = 1; i <= numCards; i++) {
 			if (viablePlay(head, 1, i, 0, centerPT)) {
@@ -621,7 +619,7 @@ void playCard(card** head, int numCardPlayed, int *colorMatch, card* centerrow) 
 	return;
 }
 
-void refreshCenter(card** centerrow) {
+void refreshCenter(card** centerrow) { //Clear the centerrow linked list
 	while (*centerrow != NULL) {
 		card* temp = *centerrow;
 		*centerrow = (*centerrow)->pt;
@@ -629,7 +627,7 @@ void refreshCenter(card** centerrow) {
 	}
 }
 
-void addToCenter(card** centerrow, int numCardPlayed, card** head) {
+void addToCenter(card** centerrow, int numCardPlayed, card** head) { //Remove from user deck and add to center
 	card* temp = (card *)malloc(sizeof(card));
 	card* cursor;
 	card* previousCursor;
@@ -670,7 +668,7 @@ void addToCenter(card** centerrow, int numCardPlayed, card** head) {
 	*centerrow = temp;
 }
 
-int calcPoints(card** head) {
+int calcPoints(card** head) { //Calculate points at the end of a round
 	card* cursor; 
 	cursor = *head;
 	int points = 0;
@@ -689,7 +687,7 @@ int calcPoints(card** head) {
 	return points;
 }
 
-void freeGame(card** player1, card** player2, card** centerrow) {
+void freeGame(card** player1, card** player2, card** centerrow) { //Clear memory from the linked lists
 	while (*player1 != NULL) {
 		card* temp = *player1;
 		*player1 = (*player1)->pt;
@@ -707,7 +705,7 @@ void freeGame(card** player1, card** player2, card** centerrow) {
 	}
 }
 
-void swap(card deck[]) {
+void swap(card deck[]) { //Shuffle the imported deck
 	int i = 0, j = 0;
 	for (int n = 0; n < DECKSIZE; n++) {
 		i = rand() % DECKSIZE;
